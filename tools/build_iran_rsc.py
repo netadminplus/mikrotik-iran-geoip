@@ -75,7 +75,7 @@ def extract_cidrs_from_content(content: str, source_name: str) -> Set[str]:
     return cidrs
 
 def generate_rsc_file(all_cidrs: Set[str], output_file: str):
-    """Generate RouterOS script file"""
+    """Generate RouterOS script file with add-only-if-not-exists logic"""
     # Sort CIDRs for consistent output
     sorted_cidrs = sorted(all_cidrs, key=lambda x: ipaddress.ip_network(x))
     
@@ -88,7 +88,7 @@ def generate_rsc_file(all_cidrs: Set[str], output_file: str):
         f.write("\n")
         
         for cidr in sorted_cidrs:
-            f.write(f"/ip firewall address-list add list=IRAN address={cidr}\n")
+            f.write(f":if ([len [/ip firewall address-list find list=IRAN and address={cidr}]] = 0) do={{/ip firewall address-list add list=IRAN address={cidr}}}\n")
     
     print(f"✓ Generated {output_file} successfully")
 
