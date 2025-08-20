@@ -9,21 +9,23 @@
 - **چندین منبع** - ترکیب داده‌ها از ipdeny، پارس‌پک و ابرآروان
 - **شامل RFC1918** - اضافه کردن خودکار محدوده‌های IP خصوصی
 - **ایمن و قابل تکرار** - می‌توان در هر زمان مجدداً اجرا کرد
+- **حفظ IP های سفارشی** - نگهداری IP های کاربر با کامنت در طول به‌روزرسانی
+- **ردیابی یادداشت سیستم** - به‌روزرسانی یادداشت سیستم با زمان آخرین به‌روزرسانی
 
 ## نصب سریع
 
-این دو دستور را در ترمینال MikroTik خود کپی و اجرا کنید:
+این دستور واحد را در ترمینال MikroTik خود کپی و اجرا کنید:
 
 ```bash
-/tool fetch url="https://raw.githubusercontent.com/netadminplus/mikrotik-iran-geoip/main/installer.rsc" mode=https dst-path=installer.rsc
-/import file-name=installer.rsc
+/tool fetch url="https://raw.githubusercontent.com/netadminplus/mikrotik-iran-geoip/main/installer.rsc" mode=https dst-path=installer.rsc; /import file-name=installer.rsc
 ```
 
 همین! سیستم اقدامات زیر را انجام می‌دهد:
 - لیست آدرس به نام `IRAN` ایجاد می‌کند
-- تمام محدوده‌های IP ایران را وارد می‌کند
+- تمام محدوده‌های IP ایران را وارد می‌کند (~1,800+ ورودی)
 - محدوده‌های خصوصی RFC1918 را اضافه می‌کند (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
 - به‌روزرسانی هفتگی خودکار را هر یکشنبه ساعت 03:00 تنظیم می‌کند
+- یادداشت سیستم را با زمان نصب به‌روزرسانی می‌کند
 
 ## پیش‌نیازها
 
@@ -36,28 +38,46 @@
 اگر خطای گواهی HTTPS به دلیل زمان نادرست سیستم دریافت کردید:
 
 ```bash
-/tool fetch url="https://raw.githubusercontent.com/netadminplus/mikrotik-iran-geoip/main/installer.rsc" mode=https check-certificate=no dst-path=installer.rsc
-/import file-name=installer.rsc
+/tool fetch url="https://raw.githubusercontent.com/netadminplus/mikrotik-iran-geoip/main/installer.rsc" mode=https check-certificate=no dst-path=installer.rsc; /import file-name=installer.rsc
 ```
 
 ## مدیریت
 
 **به‌روزرسانی دستی:**
 ```bash
-/system script run update-iran-geoip
+/system script run update_iran_geoip
+```
+
+**بررسی زمان آخرین به‌روزرسانی:**
+```bash
+/system note print
 ```
 
 **غیرفعال کردن به‌روزرسانی خودکار:**
 ```bash
-/system scheduler disable iran-geoip-weekly
+/system scheduler disable iran_geoip_weekly
 ```
 
 **حذف کامل:**
 ```bash
-/system scheduler remove iran-geoip-weekly
-/system script remove update-iran-geoip
+/system scheduler remove iran_geoip_weekly
+/system script remove update_iran_geoip
 /ip firewall address-list remove [find list=IRAN]
 ```
+
+## مدیریت IP های سفارشی
+
+می‌توانید به آرامی IP های خود را به لیست IRAN اضافه کنید. **همیشه کامنت اضافه کنید** تا از حذف در طول به‌روزرسانی جلوگیری شود:
+
+```bash
+# اضافه کردن IP سفارشی با کامنت (حفظ خواهد شد)
+/ip firewall address-list add list=IRAN address=1.2.3.4 comment="سرور سفارشی من"
+
+# اضافه کردن محدوده سفارشی با کامنت
+/ip firewall address-list add list=IRAN address=203.0.113.0/24 comment="شبکه شرکت"
+```
+
+IP های بدون کامنت در طول به‌روزرسانی حذف خواهند شد.
 
 ## منابع داده
 
@@ -81,6 +101,9 @@
 
 # محدود کردن نرخ ترافیک ایران
 /ip firewall mangle add chain=forward src-address-list=IRAN action=mark-connection new-connection-mark=iran-conn
+
+# لاگ کردن اتصالات ایران
+/ip firewall filter add chain=forward src-address-list=IRAN action=log log-prefix="Iran-Traffic"
 ```
 
 ## مجوز
