@@ -20,9 +20,14 @@
 /ip firewall address-list add list=$LIST address=172.16.0.0/12 comment="RFC1918";
 /ip firewall address-list add list=$LIST address=192.168.0.0/16 comment="RFC1918";
 
+:put "Updating system note...";
+:local timestamp [/system clock get date];
+:local timestr [/system clock get time];
+/system note set note=("Iran GeoIP last updated: " . $timestamp . " " . $timestr);
+
 :put "Creating update script...";
 /system script remove [find name=$UPDATESCRIPT];
-/system script add name=$UPDATESCRIPT source=":local LIST \"IRAN\"; :local RAW \"https://raw.githubusercontent.com/netadminplus/mikrotik-iran-geoip/main/iran.rsc\"; :local DST \"iran.rsc\"; /ip firewall address-list remove [find list=\$LIST and comment=\"\"]; /ip firewall address-list remove [find list=\$LIST and comment=\"RFC1918\"]; /tool fetch url=\$RAW mode=https dst-path=\$DST keep-result=yes; /import file-name=\$DST; /ip firewall address-list add list=\$LIST address=10.0.0.0/8 comment=\"RFC1918\"; /ip firewall address-list add list=\$LIST address=172.16.0.0/12 comment=\"RFC1918\"; /ip firewall address-list add list=\$LIST address=192.168.0.0/16 comment=\"RFC1918\"";
+/system script add name=$UPDATESCRIPT source=":local LIST \"IRAN\"; :local RAW \"https://raw.githubusercontent.com/netadminplus/mikrotik-iran-geoip/main/iran.rsc\"; :local DST \"iran.rsc\"; /ip firewall address-list remove [find list=\$LIST and comment=\"\"]; /ip firewall address-list remove [find list=\$LIST and comment=\"RFC1918\"]; /tool fetch url=\$RAW mode=https dst-path=\$DST keep-result=yes; /import file-name=\$DST; /ip firewall address-list add list=\$LIST address=10.0.0.0/8 comment=\"RFC1918\"; /ip firewall address-list add list=\$LIST address=172.16.0.0/12 comment=\"RFC1918\"; /ip firewall address-list add list=\$LIST address=192.168.0.0/16 comment=\"RFC1918\"; :local timestamp [/system clock get date]; :local timestr [/system clock get time]; /system note set note=(\"Iran GeoIP last updated: \" . \$timestamp . \" \" . \$timestr)";
 
 :put "Creating weekly scheduler...";
 /system scheduler remove [find name=$SCHEDNAME];
