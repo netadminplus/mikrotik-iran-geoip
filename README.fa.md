@@ -1,4 +1,5 @@
-# MikroTik Iran GeoIP
+[English](https://github.com/netadminplus/mikrotik-iran-geoip/blob/main/README.md)
+# MikroTik Iran GeoIP List
 
 نصب و به‌روزرسانی خودکار لیست آدرس‌های IP ایران برای دستگاه‌های MikroTik RouterOS.
 
