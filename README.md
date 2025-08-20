@@ -11,7 +11,7 @@ Automatically install and update Iran IP address ranges on MikroTik RouterOS dev
 - **RFC1918 inclusion** - Automatically adds private IP ranges
 - **Safe and idempotent** - Can be re-run safely anytime
 - **Custom IP preservation** - Keeps user-added IPs with comments during updates
-- **System note tracking** - Updates system note with last update timestamp
+- **System note tracking** - Updates system note with last update timestamp (System > Notes)
 
 ## Quick Install
 
