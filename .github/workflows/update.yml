@@ -1,0 +1,63 @@
+name: Update Iran IP List
+
+on:
+  schedule:
+    # Run every Sunday at 03:00 UTC
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Build iran.rsc
+        run: python3 tools/build_iran_rsc.py
+      
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet iran.rsc; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes in iran.rsc"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in iran.rsc"
+          fi
+      
+      - name: Update timestamp in README files
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+          
+          # Update English README
+          if [ -f README.md ]; then
+            sed -i "s/<!--LAST_UPDATED-->.*<!--\/LAST_UPDATED-->/<!--LAST_UPDATED-->$TIMESTAMP<!--\/LAST_UPDATED-->/g" README.md
+          fi
+          
+          # Update Persian README  
+          if [ -f README.fa.md ]; then
+            sed -i "s/<!--LAST_UPDATED-->.*<!--\/LAST_UPDATED-->/<!--LAST_UPDATED-->$TIMESTAMP<!--\/LAST_UPDATED-->/g" README.fa.md
+          fi
+      
+      - name: Commit changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add iran.rsc README.md README.fa.md
+          git commit -m "chore: refresh iran.rsc from sources [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
